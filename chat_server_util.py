@@ -24,6 +24,7 @@ class Server:
         self.rooms = {} # {room_name: Room}
         self.room_client_map = {} # {clientName: roomName}
         self.room_ref = room_ref
+        self.rooms_dict = {} # {room_ref: Room}
 
     def read_message(self, client, msg):
 
@@ -54,6 +55,7 @@ class Server:
                         self.rooms[room_name] = new_room	# create a new room
                         self.rooms[room_name].room_ref = self.room_ref  # Attach room reference
                         client.room_refs.append(self.room_ref)
+                        self.rooms_dict[self.room_ref] = room_name
                         print "APPENDED CLIENT REF LIST: " + str(client.room_refs)
                         new_room = 1
                         self.room_ref = self.room_ref + 1
@@ -85,8 +87,8 @@ class Server:
             
             #print "SENT LEAAVE$$" + leave_msg
             
-            
-            old_room = self.room_client_map[int(leave_join_id)]    # get name of room to leave
+            old_room = self.rooms_dict[int(leave_room_ref)]
+            #old_room = self.room_client_map[int(leave_join_id)]    # get name of room to leave
             self.rooms[old_room].remove_client(client, leave_room_ref)      # remove client from the room
             client.room_refs.remove(int(leave_room_ref))
             print "REMOVED CLIENT REF LIST: " + str(client.room_refs)

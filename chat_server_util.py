@@ -22,7 +22,7 @@ class Server:
     
     def __init__(self):
         self.rooms = {} # {room_name: Room}
-        self.room_client_map = {} # {clientName: roomName}
+        self.room_client_map = {} # {clienJoinID: roomName}
         self.room_ref = room_ref
         self.rooms_dict = {} # {room_ref: Room}
 
@@ -73,7 +73,7 @@ class Server:
                     #print "SENT$$: " + joined_string
                     
                     self.rooms[room_name].welcome_new(client, str(self.rooms[room_name].room_ref))
-                    self.room_client_map[client.join_id] = room_name
+                    self.room_client_map[self.rooms[room_name].room_ref + client.join_id] = room_name
                     msg = " "             
         
         elif "LEAVE_CHATROOM:" in msg:
@@ -92,7 +92,7 @@ class Server:
             self.rooms[old_room].remove_client(client, leave_room_ref)      # remove client from the room
             client.room_refs.remove(int(leave_room_ref))
             print "REMOVED CLIENT REF LIST: " + str(client.room_refs)
-            del self.room_client_map[int(leave_join_id)]
+            del self.room_client_map[int(leave_room_ref) + int(leave_join_id)]
             #self.check_empty_room(old_room)
            
         elif "DISCONNECT:" in msg:
@@ -112,7 +112,7 @@ class Server:
                 msg_to_send = "CHAT: " + recv_room_ref \
                 + "\nCLIENT_NAME: " + recv_client_name \
                 + "\nMESSAGE: " + recv_message
-                self.rooms[self.room_client_map[client.join_id]].broadcast(client, msg_to_send)
+                self.rooms[self.room_client_map[int(recv_room_ref) + client.join_id]].broadcast(client, msg_to_send)
             
         elif "HELO" in msg:
             text = msg.split()[1]
@@ -130,7 +130,7 @@ class Server:
     
     def remove_client(self, client):
         for room_ref in client.room_refs:
-            self.rooms[self.room_client_map[client.join_id]].remove_client(client)
+            self.rooms[self.room_client_map[int(room_ref) + client.join_id]].remove_client(client)
             del self.room_client_map[client.join_id]
         print("Client: " + client.name + " has left\n")
 

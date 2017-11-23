@@ -98,8 +98,12 @@ class Server:
             #self.check_empty_room(old_room)
            
         elif "DISCONNECT:" in msg:
+            for room_ref in client.room_refs:
+                old_room = self.rooms_dict[int(room_ref)]
+                self.rooms[old_room].remove_client(client, room_ref)
             client.socket.shutdown(socket.SHUT_RDWR)    # terminate the client's connection
-            self.remove_client(client)
+            #self.remove_client(client)
+            
 
         elif "CHAT:" in msg:
             # check if in a room or not first
@@ -124,6 +128,9 @@ class Server:
             + "\nStudentID:" + str(student_id) + "\n"
             client.socket.sendall(msg)
         elif "KILL_SERVICE" in msg:
+            for room_ref in client.room_refs:
+                old_room = self.rooms_dict[int(room_ref)]
+                self.rooms[old_room].remove_client(client, room_ref)
             client.socket.shutdown(socket.SHUT_RDWR)    # terminate the client's connection
             self.remove_client(client)
             
@@ -173,6 +180,7 @@ class Room:
         + "\nMESSAGE:" + leave_msg + "\n"
         self.broadcast(client, msg_to_send)
         self.clients.remove(client)
+        print "SERVER SENT:\n" + msg_to_send + "\n"
 
 class Client:
     

@@ -1,6 +1,7 @@
 import select, socket, sys, pdb
 from chat_server_util import Server, Room, Client
 import chat_server_util
+import time
 
 READ_BUFFER = 4096
 join_id = 1
@@ -24,18 +25,13 @@ while True:
 
         else: # already a client, read the message
             msg = client.socket.recv(READ_BUFFER)
-            if msg and "DISCONNECT: " not in msg:   # check for message and not a quit message
+
+            if msg:			# check for message
                 server.read_message(client, msg)	# interpret message
-            else:
-                error_code = 1
-    	        error_message = "ERROR_CODE: " + str(error_code) \
-    	        + "\nERROR_DESCRIPTION: Server quitting service"
-                client.socket.sendall(error_message)
-                client.socket.close()
-                connection_list.remove(client)
+            
 
     for sock in error_sockets: # close error sockets
-    	error_code = 2
+    	error_code = 1
     	error_message = "ERROR_CODE: " + str(error_code) \
     	+ "\nERROR_DESCRIPTION: Socket pushed to error list"
         sock.sendall(error_message)

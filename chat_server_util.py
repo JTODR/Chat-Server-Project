@@ -27,8 +27,9 @@ class Server:
         self.rooms_dict = {} # {room_ref: Room}
 
     def read_message(self, client, msg):
-
-        print(client.name + " says: " + msg)
+        print "-*- " + client.name + " join_id is: " + str(client.join_id)
+        print("--> " + client.name + " says: \n" + msg)
+        
         
         if "JOIN_CHATROOM:" in msg:
             #print "&&&&&& HOST " + host 
@@ -56,13 +57,13 @@ class Server:
                         self.rooms[room_name].room_ref = self.room_ref  # Attach room reference
                         client.room_refs.append(self.room_ref)
                         self.rooms_dict[self.room_ref] = room_name
-                        print "APPENDED CLIENT REF LIST: " + str(client.room_refs)
+                        #print "APPENDED CLIENT REF LIST: " + str(client.room_refs)
                         new_room = 1
                         self.room_ref = self.room_ref + 1
                     self.rooms[room_name].clients.append(client)	# add client to the room
                     if new_room == 0:
                         client.room_refs.append(self.rooms[room_name].room_ref)
-                        print "APPENDED CLIENT REF LIST: " + str(client.room_refs)
+                        #print "APPENDED CLIENT REF LIST: " + str(client.room_refs)
                         #new_room = 1
                     joined_string = "JOINED_CHATROOM: " + room_name \
                     + "\nSERVER_IP: " + host \
@@ -73,7 +74,7 @@ class Server:
                     #print "SENT$$: " + joined_string
                     
                     self.rooms[room_name].welcome_new(client, str(self.rooms[room_name].room_ref))
-                    self.room_client_map[self.rooms[room_name].room_ref + client.join_id] = room_name
+                    self.room_client_map[self.rooms[room_name].room_ref + (client.join_id*10)] = room_name
                     msg = " "             
         
         elif "LEAVE_CHATROOM:" in msg:
@@ -91,8 +92,9 @@ class Server:
             #old_room = self.room_client_map[int(leave_join_id)]    # get name of room to leave
             self.rooms[old_room].remove_client(client, leave_room_ref)      # remove client from the room
             client.room_refs.remove(int(leave_room_ref))
-            print "REMOVED CLIENT REF LIST: " + str(client.room_refs)
-            del self.room_client_map[int(leave_room_ref) + int(leave_join_id)]
+            #print "REMOVED CLIENT REF LIST: " + str(client.room_refs)
+            #int_leave_id = 
+            del self.room_client_map[int(leave_room_ref) + (int(leave_join_id)*10)]
             #self.check_empty_room(old_room)
            
         elif "DISCONNECT:" in msg:
@@ -101,7 +103,6 @@ class Server:
 
         elif "CHAT:" in msg:
             # check if in a room or not first
-            #if client.name in self.room_client_map:
             
             recv_room_ref = msg.split()[1]
             recv_client_name = msg.split()[5]
@@ -112,7 +113,8 @@ class Server:
                 msg_to_send = "CHAT: " + recv_room_ref \
                 + "\nCLIENT_NAME: " + recv_client_name \
                 + "\nMESSAGE: " + recv_message
-                self.rooms[self.room_client_map[int(recv_room_ref) + client.join_id]].broadcast(client, msg_to_send)
+                self.rooms[self.room_client_map[int(recv_room_ref) + (client.join_id*10)]].broadcast(client, msg_to_send)
+                print "SERVER SENT:\n" + msg_to_send + "\n"
             
         elif "HELO" in msg:
             text = msg.split()[1]
@@ -130,7 +132,7 @@ class Server:
     
     def remove_client(self, client):
         for room_ref in client.room_refs:
-            self.rooms[self.room_client_map[int(room_ref) + client.join_id]].remove_client(client)
+            self.rooms[self.room_client_map[int(room_ref) + (client.join_id*10)]].remove_client(client)
             del self.room_client_map[client.join_id]
         print("Client: " + client.name + " has left\n")
 
@@ -151,6 +153,7 @@ class Room:
         msg_to_send = "CHAT: " + room_ref \
         + "\nCLIENT_NAME: " + from_client.name \
         + "\nMESSAGE:" + msg + "\n\n"
+        
         
         for client in self.clients:
             client.socket.sendall(msg_to_send)      # send welcome message to all clients in room

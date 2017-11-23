@@ -3,7 +3,7 @@ from chat_server_util import Server, Room, Client
 import chat_server_util
 
 READ_BUFFER = 4096
-join_id = 1;
+join_id = 1
 
 chat_server_util.host = sys.argv[1] if len(sys.argv) >= 2 else ''
 chat_server_util.PORT = (int)(sys.argv[2])

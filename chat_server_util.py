@@ -121,12 +121,13 @@ class Server:
           
             
         elif "KILL_SERVICE" in msg:
+            print "KILLING SERVER!"
             for room_ref in client.room_refs:
                 old_room = self.room_clientref[room_ref + (client.join_id*MAX_CLIENTS)] 
                 self.rooms[old_room].remove_client(client, room_ref)    # remove client from server room list
             client.socket.shutdown(socket.SHUT_RDWR)    # terminate the client's connection
             self.remove_client(client)
-      
+            
       
         else:   # print any invalid message
             print "MESSAGE INVALID - " + msg
